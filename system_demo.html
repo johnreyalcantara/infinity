@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity System Demo: Mobile POS & Web Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base / Theme */
+        :root {
+            --bg-base: #070709;
+            --surface: rgba(20, 20, 25, 0.65);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #00d2ff;
+            --success: #00ffaa;
+            --danger: #ff3366;
+            --warning: #ffb700;
+            --text-main: #f5f5f7;
+            --text-muted: #8e8e93;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; cursor: default; user-select: none; }
+        body { background: var(--bg-base); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+        /* Split Layout */
+        .app-container { flex: 1; display: flex; padding: 30px; gap: 40px; justify-content: center;}
+
+        /* ========================================= */
+        /* 1. MOBILE APK SIMULATOR (PHONE FRAME)    */
+        /* ========================================= */
+        .phone-frame {
+            width: 375px; height: 812px; background: #000; border-radius: 45px; border: 12px solid #1c1c1f;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 10px rgba(0,210,255,0.1); 
+            position: relative; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+            transform: scale(0.9); transform-origin: top center;
+        }
+        .phone-notch { position: absolute; top: 0; left: 50%; width: 120px; height: 25px; background: #1c1c1f; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; transform: translateX(-50%); z-index: 100; }
+        
+        .phone-content { flex: 1; display: flex; flex-direction: column; position: relative; padding-top: 30px; }
+        .phone-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .phone-header h2 { font-size: 1.2rem; font-weight: 800; color: #fff;}
+        .sync-badge { background: rgba(0, 255, 170, 0.1); color: var(--success); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800;}
+        .sync-badge.offline { background: rgba(255, 51, 102, 0.1); color: var(--danger); }
+
+        /* Mobile Views wrapper */
+        .m-view { display: none; flex: 1; flex-direction: column; overflow-y: auto;}
+        .m-view.active { display: flex; }
+
+        /* View: Sales/Returns */
+        .camera-view { background: #111; height: 180px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 1px solid var(--border); flex-shrink:0;}
+        .camera-overlay { width: 80%; height: 60%; border: 2px dashed rgba(255,255,255,0.3); border-radius: 10px; position: relative; }
+        .scan-line { position: absolute; width: 100%; height: 2px; background: var(--success); box-shadow: 0 0 10px var(--success); top: 50%; opacity: 0.8; animation: scanAnim 1.5s infinite linear; }
+        @keyframes scanAnim { 0% { top: 10%; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { top: 90%; opacity:0; } }
+        .camera-view button { margin-top:15px; background: rgba(255,255,255,0.1); border:none; color:#fff; padding: 8px 16px; border-radius:12px; font-weight:600; cursor: pointer; transition: 0.1s;}
+        .camera-view button:active { transform: scale(0.95); }
+        
+        .mobile-cart { flex: 1; overflow-y: auto; padding: 15px; }
+        .m-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--surface); border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.02);}
+        .m-item-details strong { font-size: 0.95rem; display:block; }
+        .m-item-details span { font-size: 0.8rem; color: var(--accent); }
+        .m-item.refund .m-item-details span, .m-item.refund .m-item-price { color: var(--danger); }
+        
+        .mobile-checkout { padding: 20px; background: #000; border-top: 1px solid var(--border); flex-shrink:0;}
+        .mobile-checkout-total { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.4rem; font-weight: 800;}
+        .mobile-btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer;}
+        .mobile-btn:active { background: #00aaff; transform: scale(0.98); }
+        .mobile-btn.return-btn { background: var(--danger); color: #fff;}
+        .mobile-btn.return-btn:active { background: #d0204d; transform: scale(0.98); }
+
+        /* View: Outbox */
+        .outbox-list { padding: 15px; flex: 1; overflow-y: auto;}
+        .outbox-item { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        .outbox-title { font-weight: 800; font-size: 1.1rem; display:flex; justify-content:space-between; }
+        .outbox-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top:5px; }
+        .outbox-status { color: var(--warning); font-size: 0.85rem; margin-top:10px; display:flex; align-items:center; gap:5px;}
+        .outbox-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; }
+
+        /* View: Settings */
+        .settings-list { padding: 15px; flex: 1;}
+        .settings-item { padding: 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; font-weight:600;}
+
+        /* Mobile Nav */
+        .mobile-nav { display: flex; justify-content: space-around; padding: 15px 10px 25px 10px; background: #111; border-top: 1px solid var(--border); }
+        .nav-item { color: var(--text-muted); font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+        .nav-item.active { color: var(--accent); }
+        .nav-item.active.return-tab { color: var(--danger); }
+
+        /* ========================================= */
+        /* 2. WEB ADMIN DASHBOARD                    */
+        /* ========================================= */
+        .dashboard {
+            flex: 1; max-width: 900px; display: flex; flex-direction: column; gap: 20px;
+            background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 30px;
+        }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .dash-header h1 { font-weight: 800; font-size: 1.8rem; }
+        .dash-badge { padding: 6px 12px; background: rgba(0, 210, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); border-radius: 12px; font-size: 0.85rem; font-weight: 800;}
+        .dash-widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;}
+        .widget { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 20px; border-radius: 16px; display: flex; flex-direction: column;}
+        .widget-title { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
+        .widget-val { font-size: 2.2rem; font-weight: 800; }
+        .widget-val.green { color: var(--success); }
+        .sync-terminal { flex: 1; background: #050505; border-radius: 12px; border: 1px solid var(--border); padding: 15px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; margin-top: 20px; max-height: 250px;}
+        .log-line { margin-bottom: 6px; }
+        .log-time { color: var(--text-muted); margin-right: 10px;}
+        .log-msg { color: var(--text-main); }
+        .log-success { color: var(--success); }
+        .log-warn { color: var(--warning); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+
+        <!-- APK SIMULATION -->
+        <div class="phone-frame">
+            <div class="phone-notch"></div>
+            
+            <div class="phone-content">
+                <div class="phone-header">
+                    <h2 id="m-title">Sales Terminal</h2>
+                    <div id="m-sync-badge" class="sync-badge">☁️ Synced</div>
+                </div>
+
+                <!-- VIEW: SALES & RETURNS (Shared core logic) -->
+                <div id="view-checkout" class="m-view active">
+                    <!-- Fake Camera UI -->
+                    <div class="camera-view">
+                        <div class="camera-overlay"><div class="scan-line" id="cam-line"></div></div>
+                        <button id="scanBtn" onclick="mobileScanItem('Premium Wireless Earbuds', 150.00)">[Simulate Barcode Scan]</button>
+                    </div>
+
+                    <!-- APK Cart UI -->
+                    <div class="mobile-cart" id="m-cart">
+                        <div style="text-align:center; color:var(--text-muted); margin-top:40px;">Ready to scan...</div>
+                    </div>
+
+                    <div class="mobile-checkout">
+                        <div class="mobile-checkout-total"><span>Total</span><span id="m-total">$0.00</span></div>
+                        <button class="mobile-btn" id="m-pay-btn" onclick="mobileCheckout()">Pay Order</button>
+                        <!-- Connection toggle for testing offline robustess -->
+                        <label style="margin-top:15px; display:flex; justify-content:center; align-items:center; gap:10px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+                            <input type="checkbox" id="m-wifi-toggle" checked onclick="toggleWifi(this.checked)"> Store Wi-Fi Active
+                        </label>
+                    </div>
+                </div>
+
+                <!-- VIEW: OUTBOX -->
+                <div id="view-outbox" class="m-view">
+                    <div class="outbox-list" id="outbox-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- VIEW: SETTINGS -->
+                <div id="view-settings" class="m-view">
+                    <div class="settings-list">
+                        <div class="settings-item"><span>Current Branch</span> <span style="color:var(--accent);">HQ #001</span></div>
+                        <div class="settings-item"><span>Cashier ID</span> <span>Alex Z.</span></div>
+                        <div class="settings-item"><span>Local Database</span> <span>SQLite (Healthy)</span></div>
+                        <div class="settings-item" style="color:var(--danger);">Log Out</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- APK Bottom Nav -->
+            <div class="mobile-nav">
+                <div class="nav-item active" id="nav-sales" onclick="switchNav('sales')"><div>🛒</div>Sales</div>
+                <div class="nav-item" id="nav-return" onclick="switchNav('return')"><div>↩️</div>Returns</div>
+                <div class="nav-item" id="nav-outbox" onclick="switchNav('outbox')">
+                    <div>📤 <span id="nav-outbox-badge" style="background:var(--danger);color:#fff;border-radius:10px;padding:2px 6px;margin-left:2px;display:none;">0</span></div>Outbox
+                </div>
+                <div class="nav-item" id="nav-settings" onclick="switchNav('settings')"><div>⚙️</div>Settings</div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD UI -->
+        <div class="dashboard">
+            <div class="dash-header">
+                <h1>Web Analytics Dashboard</h1>
+                <div class="dash-badge">Admin Access (HQ)</div>
+            </div>
+
+            <div class="dash-widgets">
+                <div class="widget">
+                    <div class="widget-title">Live HQ Revenue</div>
+                    <div class="widget-val green" id="d-revenue">$1,240.00</div>
+                </div>
+                <div class="widget">
+                    <div class="widget-title">Total Orders Today</div>
+                    <div class="widget-val" id="d-orders">14</div>
+                </div>
+            </div>
+
+            <!-- Live Server Sync Terminal -->
+            <h3 style="margin-top:20px; font-size:1rem; color:var(--text-muted);">LIVE SERVER SYNC STREAM</h3>
+            <div class="sync-terminal" id="terminal">
+                <div class="log-line"><span class="log-time">[HqService]</span><span class="log-msg">Listening for POS Outbox pushes...</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Logic Controller integrating both views -->
+    <script>
+        // Data State
+        let mCartItems = [];
+        let mTotal = 0;
+        let isOnline = true;
+        let outboxQueue = [];
+        let currentMode = 'sales'; // 'sales', 'return', 'outbox', 'settings'
+
+        // Global business metrics
+        let totalRevenue = 1240.00;
+        let totalOrders = 14;
+
+        // Audio Beep
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function beep(success = true) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.value = success ? 2200 : 300; gain.gain.value = 0.05;
+            osc.start(); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (success ? 0.1 : 0.3)); osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // ==========================
+        // UI MANIPULATION (TABS)
+        // ==========================
+        function switchNav(tab) {
+            currentMode = tab;
+
+            // Reset navigation UI
+            ['sales', 'return', 'outbox', 'settings'].forEach(t => document.getElementById(`nav-${t}`).className = 'nav-item');
+            
+            // Highlight current tab
+            const activeTab = document.getElementById(`nav-${tab}`);
+            activeTab.classList.add('active');
+            if (tab === 'return') activeTab.classList.add('return-tab');
+
+            // Hide all views
+            ['checkout', 'outbox', 'settings'].forEach(v => document.getElementById(`view-${v}`).classList.remove('active'));
+
+            // Setup specific views
+            if (tab === 'sales') {
+                document.getElementById('view-checkout').classList.add('active');
+                document.getElementById('m-title').innerText = "Sales Terminal";
+                document.getElementById('cam-line').style.background = "var(--success)";
+                document.getElementById('cam-line').style.boxShadow = "0 0 10px var(--success)";
+                const btn = document.getElementById('m-pay-btn');
+                btn.innerText = "Pay Order"; btn.className = "mobile-btn";
+                renderCart();
+            } else if (tab === 'return') {
+                document.getElementById('view-checkout').classList.add('active');
+                document.getElementById('m-title').innerText = "Return Menu";
+                document.getElementById('cam-line').style.background = "var(--danger)";
+                document.getElementById('cam-line').style.boxShadow = "0 0 10px var(--danger)";
+                const btn = document.getElementById('m-pay-btn');
+                btn.innerText = "Process Refund"; btn.className = "mobile-btn return-btn";
+                renderCart();
+            } else if (tab === 'outbox') {
+                document.getElementById('view-outbox').classList.add('active');
+                document.getElementById('m-title').innerText = "Local Offline Outbox";
+                renderOutbox();
+            } else if (tab === 'settings') {
+                document.getElementById('view-settings').classList.add('active');
+                document.getElementById('m-title').innerText = "App Settings";
+            }
+        }
+
+        function toggleWifi(status) {
+            isOnline = status;
+            if (isOnline) {
+                document.getElementById('m-sync-badge').className = "sync-badge"; 
+                document.getElementById('m-sync-badge').innerText = "☁️ Synced";
+                logDash("[Network] Connection restored. Processing outbox...");
+                processOutbox();
+            } else {
+                document.getElementById('m-sync-badge').className = "sync-badge offline"; 
+                document.getElementById('m-sync-badge').innerText = "⚠️ Offline";
+                logDash("[Network] Terminal Connection Lost.");
+            }
+            if(currentMode === 'outbox') renderOutbox();
+        }
+
+        // ==========================
+        // CART & CHECKOUT LOGIC
+        // ==========================
+        function mobileScanItem(name, price) {
+            mCartItems.push({name, price});
+            beep(true);
+            renderCart();
+            
+            // Mock camera button press effect
+            const btn = document.getElementById('scanBtn');
+            btn.style.background = "var(--accent)"; btn.style.color = "#000";
+            setTimeout(()=> { btn.style.background = "rgba(255,255,255,0.1)"; btn.style.color = "#fff"; }, 150);
+        }
+
+        function renderCart() {
+            const uiMCart = document.getElementById('m-cart');
+            const uiMTotal = document.getElementById('m-total');
+            
+            if(mCartItems.length === 0) {
+                uiMCart.innerHTML = `<div style="text-align:center; color:var(--text-muted); margin-top:40px;">Ready to scan...</div>`;
+                uiMTotal.innerText = "$0.00";
+                mTotal = 0;
+                return;
+            }
+
+            uiMCart.innerHTML = "";
+            mTotal = 0;
+            const isReturn = (currentMode === 'return');
+            
+            mCartItems.forEach(item => {
+                const mathPrice = isReturn ? -item.price : item.price;
+                mTotal += mathPrice;
+                
+                const el = document.createElement('div'); 
+                el.className = `m-item ${isReturn ? 'refund' : ''}`;
+                el.innerHTML = `<div class="m-item-details"><strong>${item.name}</strong><span>1x qty</span></div><div class="m-item-price">${isReturn ? '-' : ''}$${item.price.toFixed(2)}</div>`;
+                uiMCart.prepend(el);
+            });
+            uiMTotal.innerText = (mTotal < 0 ? "-" : "") + "$" + Math.abs(mTotal).toFixed(2);
+        }
+
+        function mobileCheckout() {
+            if (mCartItems.length === 0) { beep(false); return; }
+            beep(true);
+            
+            const transactionRecord = { 
+                id: Math.floor(Math.random()*10000) + 90000, 
+                total: mTotal, 
+                items: mCartItems.length,
+                type: currentMode === 'return' ? 'REFUND' : 'SALE',
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            // UX: Save to offline SQLite immediately
+            outboxQueue.push(transactionRecord);
+            updateOutboxBadge();
+            
+            mCartItems = []; renderCart();
+
+            processOutbox(); // Automatically attempt sync
+        }
+
+        // ==========================
+        // OUTBOX LOGIC (NATIVE APK)
+        // ==========================
+        function updateOutboxBadge() {
+            const badge = document.getElementById('nav-outbox-badge');
+            if(outboxQueue.length > 0) {
+                badge.style.display = "inline-block";
+                badge.innerText = outboxQueue.length;
+            } else {
+                badge.style.display = "none";
+            }
+        }
+
+        function renderOutbox() {
+            const list = document.getElementById('outbox-list');
+            if(outboxQueue.length === 0) {
+                list.innerHTML = `<div class="outbox-empty">SQLite Outbox is deeply empty.<br><br>All transactions are 100% synchronized with the remote cloud.</div>`;
+                return;
+            }
+
+            let html = "";
+            outboxQueue.forEach(tx => {
+                html += `
+                <div class="outbox-item">
+                    <div class="outbox-title"><span>Tx #${tx.id} (${tx.type})</span> <span>${(tx.total < 0 ? '-' : '')}$${Math.abs(tx.total).toFixed(2)}</span></div>
+                    <div class="outbox-subtitle">Queued at: ${tx.timestamp} • Items: ${tx.items}</div>
+                    <div class="outbox-status"><span>⏳</span> ${isOnline ? 'Attempting Sync...' : 'Awaiting Internet Connection'}</div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        // ==========================
+        // BACKGROUND SYNC WORKER
+        // ==========================
+        function processOutbox() {
+            if(!isOnline) return;
+
+            if (outboxQueue.length > 0 && currentMode === "outbox") renderOutbox(); // show "attempting sync" text
+
+            // Use recursive timeout to simulate batched individual network requests
+            function syncNext() {
+                if(!isOnline || outboxQueue.length === 0) return;
+                
+                const tx = outboxQueue.shift();
+                
+                setTimeout(() => {
+                    totalRevenue += tx.total;
+                    if(tx.type === 'SALE') totalOrders += 1;
+                    
+                    // Update Web Dashboard!
+                    document.getElementById('d-revenue').innerText = `$${totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                    document.getElementById('d-orders').innerText = totalOrders;
+                    
+                    const msgColor = tx.type === 'REFUND' ? 'log-warn' : 'log-success';
+                    logDash(`[Sync Api] <span class="${msgColor}">SUCCESS</span> Indexed [${tx.type}] Tx #${tx.id} for $${tx.total.toFixed(2)} (${tx.items} items). Persistent commit OK.`);
+                    
+                    updateOutboxBadge();
+                    if (currentMode === "outbox") renderOutbox();
+
+                    syncNext(); // Proceed to next item in queue
+                }, Math.random() * 800 + 400); 
+            }
+            
+            syncNext();
+        }
+
+        function logDash(html) {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div'); div.className = "log-line";
+            div.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-msg">${html}</span>`;
+            const terminal = document.getElementById('terminal');
+            terminal.prepend(div);
+        }
+
+    </script>
+</body>
+</html>
