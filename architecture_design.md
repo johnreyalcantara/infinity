@@ -255,7 +255,19 @@ The POS system prioritizes a **scan-driven** workflow to ensure minimal user int
 
 ---
 
-## 9. MVP Scope vs Future Expansion
+## 9. Storefront CCTV Integration
+
+As a critical tool for remote franchise owners, the Web Analytics Dashboard integrates real-time CCTV monitoring. This allows business owners to maintain a physical presence and verify live POS activity against storefront camera feeds directly from the cloud.
+
+### Infrastructure & Streaming
+- **Hardware Integration:** Supports standard IP cameras (RTSP streaming) installed at the branch physical locations.
+- **Edge Processing:** A lightweight local daemon runs at the branch to transcode native RTSP feeds into WebRTC or HLS streams for low-latency web viewing.
+- **Dashboard Access:** The Web Admin Dashboard embeds a native `<video>` or WebRTC player, securely pulling the stream via the cloud API gateway.
+- **Security:** Feeds are strictly secured via JWT. Only users with the `OWNER` role can access the remote live feed.
+
+---
+
+## 10. MVP Scope vs Future Expansion
 
 ### MVP Scope (Months 1-3)
 - Fully functional POS System.

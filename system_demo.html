@@ -191,6 +191,22 @@
                 </div>
             </div>
 
+            <!-- Storefront CCTV Feed -->
+            <div class="widget" style="padding: 15px; margin-top: 10px;">
+                <div class="widget-title" style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                    <span>Live CCTV (Branch HQ #001)</span>
+                    <span style="color:var(--danger); font-size: 0.7rem; display:flex; align-items:center; gap:4px;"><div style="width:6px;height:6px;background:var(--danger);border-radius:50%;box-shadow: 0 0 5px var(--danger);"></div> REC</span>
+                </div>
+                <!-- Simulated RTSP Player Box -->
+                <div style="width: 100%; height: 200px; background: #0a0a0c; border-radius: 12px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid var(--border);">
+                    <div style="position: absolute; top: 10px; right: 10px; font-family: monospace; color: rgba(255,255,255,0.7); font-size: 0.8rem" id="cctv-time"></div>
+                    <div style="position: absolute; top: 10px; left: 10px; font-family: monospace; color: rgba(255,255,255,0.7); font-size: 0.8rem">CAM-01 [MAIN REG]</div>
+                    <p style="color: rgba(255,255,255,0.15); font-size: 0.9rem; letter-spacing: 2px;">SECURE STREAM ACTIVE</p>
+                    <!-- Simulated Static/Overlay -->
+                    <div style="position: absolute; inset:0; background: repeating-linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 3px); pointer-events: none; opacity:0.6;"></div>
+                </div>
+            </div>
+
             <!-- Live Server Sync Terminal -->
             <h3 style="margin-top:20px; font-size:1rem; color:var(--text-muted);">LIVE SERVER SYNC STREAM</h3>
             <div class="sync-terminal" id="terminal">
@@ -418,6 +434,20 @@
             const terminal = document.getElementById('terminal');
             terminal.prepend(div);
         }
+
+        // CCTV Clock
+        setInterval(() => {
+            const timeEl = document.getElementById('cctv-time');
+            if(timeEl) {
+                const now = new Date();
+                timeEl.innerText = now.getFullYear() + "-" + 
+                    String(now.getMonth()+1).padStart(2,'0') + "-" + 
+                    String(now.getDate()).padStart(2,'0') + " " + 
+                    String(now.getHours()).padStart(2,'0') + ":" + 
+                    String(now.getMinutes()).padStart(2,'0') + ":" + 
+                    String(now.getSeconds()).padStart(2,'0');
+            }
+        }, 1000);
 
     </script>
 </body>
