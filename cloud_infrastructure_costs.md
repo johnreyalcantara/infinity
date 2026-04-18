@@ -1,48 +1,43 @@
-# Infinity Cloud Infrastructure & Cost Estimates (MVP Scale)
+# Infinity End-to-End System Costing (Hardware & Cloud)
 
-This document provides a breakdown of the estimated monthly server and cloud overhead required to run the Infinity SaaS backend for an MVP scale of **0 to 100 Active Business Branches** operating 12 hours a day.
-
----
-
-## The Profit Margin Reality
-SaaS business models are incredibly profitable because infrastructure scales at a fraction of revenue. 
-With **just 2 regular customers** paying `₱1,500/month` (~$26 USD), you will completely generate enough revenue to pay the entire monthly server bill for your first 50 customers.
+This document provides a comprehensive breakdown of ALL fundamental expenses required to operate the Infinity SaaS platform, carefully segmented into **Physical Hardware Costs** (per new client deployment) and **Monthly Cloud Infrastructure** (server maintenance).
 
 ---
 
-## 1. Web Hosting & Front-End 
-**Estimated Cost: $0 - $20 / month**
-- **Technology:** Vercel (Next.js) or Netlify.
-- The Admin Dashboard and Landing Pages are statically optimized. 
-- You safely run on Vercel's **Free Tier** until you breach heavy traffic, at which point Vercel Pro is a flat `$20/month`.
+## 1. Hardware & Setup Cost (Per New Client Deployment)
 
-## 2. API Backend Compute (The Monolith)
-**Estimated Cost: $14 - $25 / month**
-- **Technology:** Render.com, DigitalOcean App Platform, or AWS Fargate.
-- The NestJS backend handles authorization, syncing outboxes, and routing requests. A standard lightweight instance (1GB RAM, 1 CPU) easily handles the background transactions of 100 concurrent stores because syncing is asynchronous and lightweight.
+Because the service acts as a complete solution provider, you incur these physical costs every time you sign up a new branch. These are one-time capital expenditures designed to be instantly offset by charging the client an upfront "Registration/Setup Fee".
 
-## 3. Core Database (PostgreSQL)
-**Estimated Cost: $15 - $25 / month**
-- **Technology:** Supabase Pro or DigitalOcean Managed Postgres.
-- Essential. This stores all tenants, products, tracking, and logs. It uses Row-Level Security (RLS). You cannot cut corners here; use a managed service that handles automated daily backups so you never lose your clients' sales data.
+**Estimated Physical Cost per Branch: `~₱3,500 to ₱5,000`**
 
-## 4. In-Memory Cache (Redis)
-**Estimated Cost: $0 - $5 / month**
-- **Technology:** Upstash (Serverless Redis).
-- Caches JWT sessions, rate limits, and buffers massive dashboard traffic. Upstash charges per command request. For 100 stores, usage typically falls well within the free tier or mere single-digit dollars.
+- **Bluetooth Wireless Barcode Scanner:** `~₱1,000 to ₱1,500` (Available via wholesale on Shopee/Lazada; ensures the fast scan-driven workflow.)
+- **IP Security Camera (CCTV):** `~₱1,500 to ₱2,000` (Smart IP cameras like Tapo C200 or Xiaomi 360 are ideal. This estimate includes the purchase of a 64GB MicroSD card for local backup recording at the store.)
+- **Deployment Labor & Transportation:** `~₱1,000 to ₱1,500` (The physical labor constraint of traveling to their store to mount the camera and pair the Bluetooth scanner to their phone.)
 
-## 5. CCTV Video Routing (TURN Servers)
-**Estimated Cost: $5 - $20 / month**
-- **Technology:** WebRTC Peer-to-Peer (Twilio Network / Metered TURN).
-- **Architecture Trick to save money**: Video streaming uses massive bandwidth. Do **not** process video through your NestJS backend. Ensure the browser tries to connect to the store's IP Camera via Direct WebRTC (P2P). This costs $0. 
-- Only if the store's internet router restricts P2P, a TURN relay server is used to bounce the video data. Typical Twilio metered rates for small bursts of CCTV checking (owners don't watch 24/7, they only peek at the dashboard) stays under $20.
+*Business Strategy Reminder:* By charging a standard ₱7,500 upfront Registration Fee, you immediately recoup all hardware costs and earn a ~₱3,000 margin on day one before the monthly subscription even begins.
 
 ---
 
-## 💰 Total Estimated Monthly Cloud Overhead: ~$34 to $75 USD 
-**Converted:** `~₱1,900 to ₱4,200` per month.
+## 2. Cloud Infrastructure Overhead (Monthly Fixed Costs)
 
-### Financial Summary
-- **Monthly Revenue at 50 Branches:** `₱74,950`
-- **Monthly Server Costs:** `~₱3,500`
-- **Gross Software Margin:** `~95.3%`
+These are your monthly server bills to run the SaaS infrastructure for an MVP scale of **0 to 100 Active Business Branches** operating all day.
+
+**Estimated Monthly Server Overhead: `~₱1,900 to ₱4,200`**
+
+- **Web Hosting (Vercel/Next.js):** `₱0` (Free Tier) to `₱1,120` (Pro Tier). Hosts your high-tech Landing Page and the Admin Web Dashboard.
+- **API Backend compute (NestJS on DigitalOcean App Platform):** `₱800 to ₱1,400`. Handles the core POS math, sync routing, and User Auth.
+- **Central Database (Supabase PostgreSQL):** `₱1,400`. The lifeblood of the system. Stores all products, branches, receipts, and offline push queues safely with Row-Level Security.
+- **In-Memory Cache (Redis):** `₱100`. Rate limits massive dashboard traffic so your main DB doesn't crash.
+- **CCTV Video Routing (WebRTC/TURN server):** `₱300 to ₱1,100`. Required to bypass restrictive store internet routers and relay live video feeds directly to the owner's dashboard anywhere in the world.
+
+---
+
+## 💰 The Total Profit Margin
+
+SaaS businesses thrive because server costs scale practically independently from revenue generation. 
+
+- **Hard Cost to Onboard 1 New Client:** `~₱4,500`
+- **Total Overhead to Host 50 Clients (Servers):** `~₱3,500 / month` 
+- **Total Revenue from 50 Clients (at ₱1,499/mo):** `₱74,950 / month`
+
+Once you install your first 3 branches, their combined monthly subscription comfortably covers all of your cloud computing bills. The remaining recurring payments act as nearly 95% pure compounding profit.
