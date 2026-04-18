@@ -356,12 +356,18 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
         scene.add(ambientLight);
 
-        // Initial Responsive Position (Push Right so left text is readable)
+        // Initial Responsive Position
         const isMobile = window.innerWidth < 768;
         mesh.position.x = isMobile ? 0 : 2.5;
-        mesh.position.y = isMobile ? 2 : 0;
-        coreMesh.position.x = mesh.position.x;
-        coreMesh.position.y = mesh.position.y;
+        mesh.position.y = 0; // Center vertically on both desktop and mobile
+        
+        if (isMobile) {
+            // Scale down to fit gracefully inside narrow phone screens
+            mesh.scale.set(0.65, 0.65, 0.65);
+            coreMesh.scale.set(0.64, 0.64, 0.64);
+        }
+        
+        coreMesh.position.copy(mesh.position);
 
         // -------------------------
         // 3. SCROLL 3D ANIMATIONS
