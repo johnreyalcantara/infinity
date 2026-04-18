@@ -242,6 +242,15 @@
             </div>
         </section>
 
+        <!-- Feature 4: Remote CCTV -->
+        <section class="content-right">
+            <div class="glass-panel">
+                <h2>4. Live Storefront CCTV</h2>
+                <p>Maintain a physical presence even when you're miles away.</p>
+                <p>The <span class="highlight">Admin Dashboard</span> securely streams real-time video feeds from your branch security cameras, letting you verify operations live against the sales ticker.</p>
+            </div>
+        </section>
+
         <!-- Summary Section -->
         <section class="content-center" style="min-height: 50vh; padding-bottom: 0;">
             <div class="glass-panel" style="margin: 0 auto; max-width: 800px;">
@@ -423,7 +432,14 @@
                 .to(material.color, { r: col3.r, g: col3.g, b: col3.b }, "<")
                 .to(pointLight.color, { r: col3.r, g: col3.g, b: col3.b }, "<");
 
-            // Scroll Stage 4: Speed to Dashboard (Center up, return to blue)
+            // Scroll Stage 4: Speed to CCTV (Move right, change color to purple)
+            const col5 = new THREE.Color(0xb026ff);
+            tl.to(mesh.position, { x: 3, y: 0, z: 0, onUpdate: updateCore })
+                .to(mesh.rotation, { x: Math.PI * 1.8, y: -Math.PI * 0.2, onUpdate: updateCore }, "<")
+                .to(material.color, { r: col5.r, g: col5.g, b: col5.b }, "<")
+                .to(pointLight.color, { r: col5.r, g: col5.g, b: col5.b }, "<");
+
+            // Scroll Stage 5: CCTV to Dashboard (Center up, return to blue)
             tl.to(mesh.position, { x: 0, y: 0, z: 0, onUpdate: updateCore })
                 .to(mesh.rotation, { x: Math.PI * 2, y: 0, onUpdate: updateCore }, "<")
                 .to(material.color, { r: col4.r, g: col4.g, b: col4.b }, "<")
