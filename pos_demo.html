@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity POS | Scanner Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS reset & base */
+        :root {
+            --bg-base: #070709;
+            --surface-glass: rgba(20, 20, 25, 0.65);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent: #00d2ff;
+            --accent-hover: #00aaff;
+            --text-main: #f5f5f7;
+            --text-muted: #8e8e93;
+            --danger: #ff3366;
+            --success: #00ffaa;
+            --warning: #ffd700;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg-base); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+        /* Background glow effect */
+        .bg-glow {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,210,255,0.05) 0%, rgba(0,0,0,0) 70%);
+            top: -200px; left: -200px; border-radius: 50%; pointer-events: none; z-index: 0;
+        }
+
+        /* Layout */
+        .container { flex: 1; display: flex; z-index: 1; padding: 20px; gap: 20px; max-width: 1600px; margin: 0 auto; width: 100%;}
+        
+        /* Main Catalog Area */
+        .catalog { flex: 2; display: flex; flex-direction: column; gap: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Scanner Input */
+        .scanner-bar { display: flex; gap: 10px; background: var(--surface-glass); border: 1px solid var(--border-glass); padding: 15px 20px; border-radius: 16px; backdrop-filter: blur(10px); }
+        .scanner-bar input { flex: 1; background: transparent; border: none; outline: none; color: white; font-size: 1.2rem; }
+        .scanner-bar input::placeholder { color: var(--text-muted); }
+        
+        /* Product Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;}
+        .grid::-webkit-scrollbar { width: 6px; }
+        .grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .product-card {
+            background: var(--surface-glass); border: 1px solid var(--border-glass); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.1s ease;
+            display: flex; flex-direction: column; justify-content: space-between; height: 140px; backdrop-filter: blur(10px); position: relative; overflow: hidden;
+        }
+        .product-card:hover { border-color: rgba(0, 210, 255, 0.4); }
+        .product-card:active { transform: scale(0.96); border-color: var(--accent); }
+        .product-card .name { font-size: 1.1rem; font-weight: 600; line-height: 1.2; }
+        .product-card .price { font-size: 1.25rem; color: var(--accent); font-weight: 800; margin-top: 10px; }
+        .product-card .barcode { font-size: 0.8rem; color: var(--text-muted); margin-top: auto; }
+        
+        /* Cart Sidebar */
+        .cart-sidebar { flex: 1; background: var(--surface-glass); border: 1px solid var(--border-glass); border-radius: 20px; display: flex; flex-direction: column; backdrop-filter: blur(20px); overflow: hidden; max-width: 450px;}
+        
+        /* Modes */
+        .mode-tabs { display: flex; border-bottom: 1px solid var(--border-glass); }
+        .mode-tab { flex: 1; padding: 18px; text-align: center; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.2s; }
+        .mode-tab.active.sales { color: white; border-bottom: 3px solid var(--accent); background: rgba(0, 210, 255, 0.05); }
+        .mode-tab.active.return { color: white; border-bottom: 3px solid var(--danger); background: rgba(255, 51, 102, 0.05); }
+
+        /* Cart Items */
+        .cart-items { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .cart-items::-webkit-scrollbar { width: 4px; }
+        .cart-items::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .cart-item { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; animation: slideIn 0.2s cubic-bezier(0.2, 1, 0.3, 1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .cart-item-details { display: flex; flex-direction: column; }
+        .cart-item-name { font-weight: 600; font-size: 1.1rem; margin-bottom: 4px; }
+        .cart-item-qty { color: var(--accent); font-size: 0.95rem; font-weight: 600;}
+        .cart-item-price { font-weight: 800; font-size: 1.1rem; margin-left: 10px;}
+        .return-item .cart-item-price, .return-item .cart-item-qty { color: var(--danger); }
+
+        /* Checkout Bottom */
+        .checkout-box { padding: 25px; background: rgba(0,0,0,0.5); border-top: 1px solid var(--border-glass); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--text-muted); font-size: 1.1rem;}
+        .summary-row.total { font-size: 2rem; color: white; font-weight: 800; margin-top: 15px; margin-bottom: 25px; border-top: 1px dashed var(--border-glass); padding-top: 15px;}
+        
+        .pay-btn { width: 100%; padding: 20px; border-radius: 14px; font-size: 1.3rem; font-weight: 800; cursor: pointer; transition: 0.2s; border: none; }
+        .pay-btn.sales { background: var(--accent); color: #000; box-shadow: 0 4px 20px rgba(0,210,255, 0.3);}
+        .pay-btn.sales:active { background: #00aaff; transform: translateY(2px); box-shadow: none; }
+        .pay-btn.return { background: var(--danger); color: #fff; box-shadow: 0 4px 20px rgba(255,51,102, 0.3); }
+        .pay-btn.return:active { background: #d0204d; transform: translateY(2px); box-shadow: none; }
+
+        /* Toast */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 14px 28px; background: #fff; color: #000; border-radius: 30px; font-weight: 600; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div id="toast">Saved Offline instantly!</div>
+
+    <div class="container">
+        <!-- Main Catalog / Scanner -->
+        <div class="catalog">
+            <div class="header">
+                <h1>Infinity POS <span>⚡</span></h1>
+                <div style="color: var(--success); display:flex; align-items:center; font-weight: 600; gap:8px;">
+                    <span style="width:10px;height:10px;background:var(--success);border-radius:50%;display:inline-block;box-shadow: 0 0 8px var(--success);"></span> Online & Synced
+                </div>
+            </div>
+
+            <!-- Virtual Scanner -->
+            <div class="scanner-bar">
+                <svg width="28" height="28" fill="var(--text-muted)" viewBox="0 0 24 24"><path d="M4 4h4v2H6v2H4V4zm16 0h-4v2h2v2h2V4zM4 20h4v-2H6v-2H4v4zm16 0h-4v-2h2v-2h2v4zM5 9h2v6H5V9zm3 0h1v6H8V9zm2 0h2v6h-2V9zm3 0h1v6h-1V9zm2 0h1v6h-1V9zm2 0h2v6h-2V9z"/></svg>
+                <input type="text" id="scannerInput" placeholder="Simulate barcode gun: Type '10001' and press Enter, or click a card below" autocomplete="off" autofocus>
+            </div>
+
+            <!-- Predefined Items (Fallback buttons) -->
+            <h3 style="color:var(--text-muted); font-size:1.1rem; margin-top:10px;">Quick Access Favorites (Fallback Taps)</h3>
+            <div class="grid" id="productGrid">
+                <!-- Injected via JS -->
+            </div>
+            
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: auto; padding-bottom: 10px;">
+                * Architecture Note: Notice the absolute zero-latency execution. This perfectly reflects the local SQLite offline-first speed profile.
+            </p>
+        </div>
+
+        <!-- Cart Sidebar -->
+        <div class="cart-sidebar">
+            <div class="mode-tabs">
+                <div class="mode-tab active sales" id="tabSales">🛒 Sales Mode</div>
+                <div class="mode-tab return" id="tabReturn">↩️ Return Mode</div>
+            </div>
+
+            <div class="cart-items" id="cartItems">
+                <!-- Cart Content -->
+                <div style="color: var(--text-muted); text-align: center; margin-top: 50px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;">🛍️</div>
+                    Cart is empty. <br>Scan an item to begin.
+                </div>
+            </div>
+
+            <div class="checkout-box">
+                <div class="summary-row"><span>Subtotal</span><span id="subtotalUI">$0.00</span></div>
+                <div class="summary-row"><span>Tax (8%)</span><span id="taxUI">$0.00</span></div>
+                <div class="summary-row total"><span>Total</span><span id="totalUI">$0.00</span></div>
+                
+                <button class="pay-btn sales" id="payBtn">Checkout & Sync 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Product Database (Local Offline Cache) ---
+        const products = [
+            { barcode: "10001", name: "Cyber Keyboard v2", price: 149.99 },
+            { barcode: "10002", name: "Infinity Mouse", price: 79.50 },
+            { barcode: "10003", name: "High-Speed HDMI", price: 19.99 },
+            { barcode: "10004", name: "4K Monitor 27\"", price: 320.00 },
+            { barcode: "10005", name: "USB-C Hub Pro", price: 45.00 },
+            { barcode: "10006", name: "Wireless Headphones", price: 189.99 },
+            { barcode: "10007", name: "Gaming Mousepad", price: 25.00 },
+            { barcode: "10008", name: "Laptop Stand", price: 34.50 },
+            { barcode: "10009", name: "Webcam 1080p", price: 59.99 },
+            { barcode: "10010", name: "Screen Cleaner Kit", price: 9.99 },
+            { barcode: "10011", name: "Blue Switch Pack", price: 15.00 },
+            { barcode: "10012", name: "Wrist Rest", price: 12.50 },
+        ];
+
+        // --- 2. State Management ---
+        let cart = {}; // Object mapping barcode -> item with quantity
+        let currentMode = "sales"; // "sales" or "return"
+
+        // --- 3. DOM Elements ---
+        const gridUI = document.getElementById('productGrid');
+        const scannerInput = document.getElementById('scannerInput');
+        const cartUI = document.getElementById('cartItems');
+        const tabSales = document.getElementById('tabSales');
+        const tabReturn = document.getElementById('tabReturn');
+        const payBtn = document.getElementById('payBtn');
+        const subUI = document.getElementById('subtotalUI');
+        const taxUI = document.getElementById('taxUI');
+        const totalUI = document.getElementById('totalUI');
+        const toast = document.getElementById('toast');
+
+        // --- 4. Audio Synthesizer for <200ms Beep Simulation ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(success) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if(success) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(2200, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- 5. Render Products Details ---
+        function renderGrid() {
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="name">${p.name}</div>
+                    <div class="price">$${p.price.toFixed(2)}</div>
+                    <div class="barcode">ID: ${p.barcode}</div>
+                `;
+                // Add click listener to simulate manual tapping
+                card.onclick = () => handleScan(p.barcode);
+                gridUI.appendChild(card);
+            });
+        }
+
+        // --- 6. Core Logic: Scan Processing ---
+        function handleScan(barcode) {
+            const product = products.find(p => p.barcode === barcode);
+            if (!product) {
+                playBeep(false);
+                // Shake input to warn user
+                scannerInput.style.transform = 'translateX(10px)';
+                setTimeout(()=> scannerInput.style.transform = 'translate(-10px)', 50);
+                setTimeout(()=> scannerInput.style.transform = 'translate(0)', 100);
+                scannerInput.value = ''; // Reset scanner
+                return;
+            }
+
+            // Super fast addition (O(1) dictionary update)
+            if (cart[barcode]) {
+                cart[barcode].qty += 1;
+            } else {
+                cart[barcode] = { ...product, qty: 1 };
+            }
+            
+            playBeep(true);
+            updateCartUI();
+            scannerInput.value = ''; // Reset scanner
+            scannerInput.focus();
+        }
+
+        // --- 7. Cart Rendering & Math ---
+        function updateCartUI() {
+            if(Object.keys(cart).length === 0) {
+                 cartUI.innerHTML = `<div style="color: var(--text-muted); text-align: center; margin-top: 50px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;">🛍️</div>
+                    Cart is empty. <br>Scan an item to begin.
+                </div>`;
+                subUI.innerText = "$0.00"; taxUI.innerText = "$0.00"; totalUI.innerText = "$0.00";
+                return;
+            }
+
+            cartUI.innerHTML = '';
+            let subtotal = 0;
+
+            const isReturn = currentMode === "return";
+            const multiplier = isReturn ? -1 : 1;
+
+            Object.values(cart).forEach(item => {
+                const itemTotal = item.price * item.qty * multiplier;
+                subtotal += itemTotal;
+                
+                const el = document.createElement('div');
+                el.className = `cart-item ${isReturn ? 'return-item' : ''}`;
+                el.innerHTML = `
+                    <div class="cart-item-details">
+                        <span class="cart-item-name">${item.name}</span>
+                        <span class="cart-item-qty">${item.qty}x @ $${item.price.toFixed(2)}</span>
+                    </div>
+                    <div class="cart-item-price">${isReturn ? '-' : ''}$${Math.abs(itemTotal).toFixed(2)}</div>
+                `;
+                cartUI.appendChild(el);
+            });
+
+            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+
+            // Format numbers
+            subUI.innerText = (isReturn && subtotal < 0 ? '-' : '') + '$' + Math.abs(subtotal).toFixed(2);
+            taxUI.innerText = (isReturn && tax < 0 ? '-' : '') + '$' + Math.abs(tax).toFixed(2);
+            totalUI.innerText = (isReturn && total < 0 ? '-' : '') + '$' + Math.abs(total).toFixed(2);
+
+            // Auto-scroll to bottom of items perfectly
+            cartUI.scrollTop = cartUI.scrollHeight;
+        }
+
+        // --- 8. Event Listeners ---
+        // Hidden barcode scanner listener triggers on Enter key
+        scannerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const barcode = scannerInput.value.trim();
+                if(barcode) handleScan(barcode);
+            }
+        });
+
+        // Mode Switching
+        function setMode(mode) {
+            currentMode = mode;
+            if(mode === "sales") {
+                tabSales.classList.add('active');
+                tabReturn.classList.remove('active');
+                payBtn.className = "pay-btn sales";
+                payBtn.innerText = "Checkout & PUSH Sync 🚀";
+                document.body.style.boxShadow = "none";
+            } else {
+                tabReturn.classList.add('active');
+                tabSales.classList.remove('active');
+                payBtn.className = "pay-btn return";
+                payBtn.innerText = "Refund & PUSH Sync 🚀";
+            }
+            if(Object.keys(cart).length > 0) updateCartUI(); 
+            scannerInput.focus();
+        }
+
+        tabSales.onclick = () => setMode('sales');
+        tabReturn.onclick = () => setMode('return');
+
+        // Mock Checkout
+        payBtn.onclick = () => {
+            if(Object.keys(cart).length === 0) return;
+            cart = {};
+            updateCartUI();
+            
+            // Show awesome instant sync toast (representing background worker taking over)
+            toast.innerText = currentMode === 'sales' 
+                ? "✓ Transaction saved locally directly to SQLite!" 
+                : "✓ Refund saved locally to SQLite!";
+            toast.style.background = "var(--success)";
+            toast.style.color = "#000";
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, 20px)';
+            
+            setTimeout(() => { 
+                toast.style.background = "#fff";
+                toast.innerText = "↻ Background worker pushing outbox via API..."; 
+            }, 1800);
+            
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                toast.style.transform = 'translate(-50%, 0)'; 
+            }, 4000);
+
+            scannerInput.focus();
+        };
+
+        // Require clicking anywhere to focus input to mimic POS guns
+        document.body.addEventListener('click', (e) => {
+            if(e.target.tagName !== "BUTTON" && e.target.className !== "mode-tab") {
+                scannerInput.focus();
+            }
+        });
+
+        // Initialize UI
+        renderGrid();
+
+    </script>
+</body>
+</html>
