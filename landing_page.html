@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity | The Smart POS System</title>
+    <!-- Modern Typeface -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #070709;
+            --text-light: #f5f5f7;
+            --accent: #00d2ff;
+            --glass-bg: rgba(20, 20, 25, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* The canvas holding the 3D object sits fixed in the background */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Each section takes full height to allow scrolling */
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 10%;
+        }
+
+        /* Alignment classes to make room for the 3D model on the opposite side */
+        .content-left {
+            justify-content: flex-start;
+        }
+
+        .content-right {
+            justify-content: flex-end;
+        }
+
+        .content-center {
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Premium Glassmorphism Card Style */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 3.5rem;
+            max-width: 600px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+
+            /* Initial state for fade-in */
+            transform: translateY(60px);
+            opacity: 0;
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-panel.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #fff;
+            letter-spacing: -0.01em;
+        }
+
+        p {
+            font-size: 1.15rem;
+            font-weight: 300;
+            margin-bottom: 1.2rem;
+            color: #b0b0b5;
+        }
+
+        ul {
+            list-style-type: none;
+            margin-bottom: 1.2rem;
+            padding-left: 1.8rem; /* Make room for the absolute bullet */
+        }
+
+        li {
+            font-size: 1.15rem;
+            font-weight: 300;
+            margin-bottom: 0.8rem;
+            color: #b0b0b5;
+            position: relative; /* Anchor for custom bullet */
+            line-height: inherit;
+        }
+
+        li::before {
+            content: "✦";
+            color: var(--accent);
+            position: absolute;
+            left: -1.8rem;
+            top: 0.1rem; /* Aligns vertically with the first line of text */
+            font-size: 1.2rem;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .glass-panel {
+                padding: 2rem;
+            }
+
+            section {
+                align-items: flex-end;
+                padding-bottom: 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Scrolling Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="content-left">
+            <div class="glass-panel">
+                <h1>Infinity</h1>
+                <h2>The Smart POS System</h2>
+                <p>An all-in-one business management system designed to help growing businesses run smoothly, no matter
+                    what happens in the real world.</p>
+                <p>Sell products, track inventory, and monitor performance—all from one place.</p>
+            </div>
+        </section>
+
+        <!-- Problem Section -->
+        <section class="content-right">
+            <div class="glass-panel">
+                <h2>The Real-World Problems</h2>
+                <ul>
+                    <li><span class="highlight">Internet drops</span> freeze cloud systems, preventing sales.</li>
+                    <li><span class="highlight">Long checkout lines</span> due to slow, confusing menus on traditional
+                        POS.</li>
+                    <li><span class="highlight">Lost stock</span> when trying to manage multiple branches manually.</li>
+                    <li><span class="highlight">Owners in the dark</span> when they aren't physically present.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Feature 1: Offline -->
+        <section class="content-left">
+            <div class="glass-panel">
+                <h2>1. Never Stops Working</h2>
+                <p>Infinity's <span class="highlight">Offline-First</span> technology ensures cashiers won't even notice
+                    an internet outage.</p>
+                <p>Continue scanning items, taking cash, and printing receipts. When the connection returns, Infinity
+                    quietly syncs everything perfectly back to the cloud.</p>
+            </div>
+        </section>
+
+        <!-- Feature 2: Speed -->
+        <section class="content-right">
+            <div class="glass-panel">
+                <h2>2. Lightning-Fast Checkouts</h2>
+                <p>We know speed is everything. We built a heavily <span class="highlight">scan-driven</span> workflow
+                    designed for high volume.</p>
+                <p>Point the scanner, hear the beep. No manual screen taps required. It's so simple that any new
+                    employee can learn it completely in 5 minutes.</p>
+            </div>
+        </section>
+
+        <!-- Feature 3: Smart Management -->
+        <section class="content-left">
+            <div class="glass-panel">
+                <h2>3. Smart Management</h2>
+                <p>Instant inventory deductions and seamless multi-branch tracking.</p>
+                <p>Log into your <span class="highlight">Web Dashboard</span> from anywhere to instantly see top
+                    sellers, live revenue, and low-stock alerts across your entire retail empire.</p>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section class="content-center">
+            <div class="glass-panel" style="margin: 0 auto; max-width: 800px;">
+                <h2>The Central Engine</h2>
+                <p>Infinity is not just a smart cash register. It speeds up your lines, removes internet stress, and
+                    gives you total control to focus on growing your business.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Dependencies: Three.js for 3D & GSAP for Scroll Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        // -------------------------
+        // 1. SCROLL FADE IN (TEXT)
+        // -------------------------
+        gsap.registerPlugin(ScrollTrigger);
+
+        const panels = document.querySelectorAll('.glass-panel');
+        panels.forEach((panel) => {
+            ScrollTrigger.create({
+                trigger: panel,
+                start: "top 85%", // Trigger when top of panel hits 85% down viewport
+                toggleClass: "visible",
+                once: false
+            });
+        });
+
+        // -------------------------
+        // 2. THREE.JS SCENE SETUP
+        // -------------------------
+        const canvas = document.querySelector('#webgl-canvas');
+        const scene = new THREE.Scene();
+
+        // Add subtle fog to blend into the dark background
+        scene.fog = new THREE.FogExp2(0x070709, 0.04);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 9;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // ----------------------------------------------------
+        // HIGH-TECH INFINITY SHAPE (Lemniscate Prism Mesh)
+        // ----------------------------------------------------
+        class InfinityCurve extends THREE.Curve {
+            constructor() { super(); }
+            getPoint(t, optionalTarget = new THREE.Vector3()) {
+                const tt = t * Math.PI * 2;
+                const a = 2.5; // scaling factor
+                const denom = 1 + Math.sin(tt) * Math.sin(tt);
+                const x = (a * Math.cos(tt)) / denom;
+                const y = (a * Math.sin(tt) * Math.cos(tt)) / denom;
+                const z = Math.sin(tt * 2) * 0.4; // 3D depth and twist
+                return optionalTarget.set(x, y, z);
+            }
+        }
+
+        const path = new InfinityCurve();
+        // 120 tubular segments, 0.35 radius, 4 radial (creates a geometric prism)
+        const geometry = new THREE.TubeGeometry(path, 120, 0.35, 4, true);
+
+        // 1. Holographic Edge Lines instead of "snake scales"
+        const edgesGeom = new THREE.EdgesGeometry(geometry);
+        const material = new THREE.LineBasicMaterial({
+            color: 0x00d2ff,
+            transparent: true,
+            opacity: 0.9
+        });
+        const mesh = new THREE.LineSegments(edgesGeom, material);
+        scene.add(mesh);
+
+        // 2. Dark Metallic Solid Core (Sleek cyber aesthetic)
+        const coreMat = new THREE.MeshStandardMaterial({
+            color: 0x050507,
+            metalness: 1.0,
+            roughness: 0.2,
+            flatShading: true // Gives it sharp, diamond-cut faces
+        });
+        const coreMesh = new THREE.Mesh(geometry, coreMat);
+        coreMesh.scale.set(0.99, 0.99, 0.99); // Fits perfectly inside glowing edges
+        scene.add(coreMesh);
+
+        // Background Particles
+        const particlesGeom = new THREE.BufferGeometry();
+        const particlesCount = 800;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 20;
+        }
+        particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.03,
+            color: 0x00d2ff,
+            transparent: true,
+            opacity: 0.5
+        });
+        Reflect.set(window, 'particlesMesh', new THREE.Points(particlesGeom, particlesMat));
+        scene.add(window.particlesMesh);
+
+        // Lighting
+        const pointLight = new THREE.PointLight(0x00d2ff, 2, 20);
+        pointLight.position.set(2, 3, 4);
+        scene.add(pointLight);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+        scene.add(ambientLight);
+
+        // Initial Responsive Position (Push Right so left text is readable)
+        const isMobile = window.innerWidth < 768;
+        mesh.position.x = isMobile ? 0 : 2.5;
+        mesh.position.y = isMobile ? 2 : 0;
+        coreMesh.position.x = mesh.position.x;
+        coreMesh.position.y = mesh.position.y;
+
+        // -------------------------
+        // 3. SCROLL 3D ANIMATIONS
+        // -------------------------
+        // Create an animation timeline tied to the scroll position of the page
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: "main",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1, // Smoothly link scroll progress to animation
+            }
+        });
+
+        // Ensure positions are synced
+        const updateCore = () => {
+            coreMesh.position.copy(mesh.position);
+            coreMesh.rotation.copy(mesh.rotation);
+        };
+
+        if (!isMobile) {
+            const col1 = new THREE.Color(0xff3366);
+            const col2 = new THREE.Color(0x00ffaa);
+            const col3 = new THREE.Color(0xffd700);
+            const col4 = new THREE.Color(0x00d2ff);
+
+            // Scroll Stage 1: Hero to Problem (Move left, rotate, change color to red)
+            tl.to(mesh.position, { x: -3, y: 0, z: -1, onUpdate: updateCore }, 0)
+                .to(mesh.rotation, { x: Math.PI * 0.5, y: Math.PI * 0.2, onUpdate: updateCore }, 0)
+                .to(material.color, { r: col1.r, g: col1.g, b: col1.b }, 0)
+                .to(pointLight.color, { r: col1.r, g: col1.g, b: col1.b }, 0);
+
+            // Scroll Stage 2: Problem to Offline (Move right, change color to green)
+            tl.to(mesh.position, { x: 3, y: 0, z: 0, onUpdate: updateCore })
+                .to(mesh.rotation, { x: Math.PI, y: -Math.PI * 0.3, onUpdate: updateCore }, "<")
+                .to(material.color, { r: col2.r, g: col2.g, b: col2.b }, "<")
+                .to(pointLight.color, { r: col2.r, g: col2.g, b: col2.b }, "<");
+
+            // Scroll Stage 3: Offline to Speed (Move left, change color to yellow/gold)
+            tl.to(mesh.position, { x: -3, y: 0, z: 1, onUpdate: updateCore })
+                .to(mesh.rotation, { x: Math.PI * 1.5, y: Math.PI * 0.5, onUpdate: updateCore }, "<")
+                .to(material.color, { r: col3.r, g: col3.g, b: col3.b }, "<")
+                .to(pointLight.color, { r: col3.r, g: col3.g, b: col3.b }, "<");
+
+            // Scroll Stage 4: Speed to Dashboard (Center up, return to blue)
+            tl.to(mesh.position, { x: 0, y: 0, z: 0, onUpdate: updateCore })
+                .to(mesh.rotation, { x: Math.PI * 2, y: 0, onUpdate: updateCore }, "<")
+                .to(material.color, { r: col4.r, g: col4.g, b: col4.b }, "<")
+                .to(pointLight.color, { r: col4.r, g: col4.g, b: col4.b }, "<");
+        } else {
+            // Simplified mobile animations
+            const colMob = new THREE.Color(0xffd700);
+            tl.to(mesh.rotation, { x: Math.PI * 3, y: Math.PI * 2, onUpdate: updateCore }, 0);
+            tl.to(material.color, { r: colMob.r, g: colMob.g, b: colMob.b }, 0);
+        }
+
+        // -------------------------
+        // 4. RENDER LOOP
+        // -------------------------
+        const clock = new THREE.Clock();
+
+        function tick() {
+            const elapsedTime = clock.getElapsedTime();
+
+            // Continuous idle float
+            mesh.position.y += Math.sin(elapsedTime * 1.5) * 0.0015;
+            coreMesh.position.y += Math.sin(elapsedTime * 1.5) * 0.0015;
+
+            // Continuous idle rotation
+            mesh.rotation.z += 0.002;
+            coreMesh.rotation.z += 0.002;
+
+            // Ambient particle rotation
+            window.particlesMesh.rotation.y = elapsedTime * 0.03;
+
+            renderer.render(scene, camera);
+            window.requestAnimationFrame(tick);
+        }
+
+        tick();
+
+        // Handle Resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+
+</html>
